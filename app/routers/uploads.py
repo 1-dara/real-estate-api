@@ -6,14 +6,18 @@ from app.models.property import Property
 from app.models.property_image import PropertyImage
 from app.models.user import User
 from app.routers.properties import get_current_user
-import os
-import uuid
+from app.core.config import settings
+import cloudinary
+import cloudinary.uploader
 
 router = APIRouter()
 
-# Where images will be saved on your computer
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Configure Cloudinary
+cloudinary.config(
+    cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+    api_key=settings.CLOUDINARY_API_KEY,
+    api_secret=settings.CLOUDINARY_API_SECRET
+)
 
 
 @router.post("/{property_id}/images", status_code=201)
@@ -47,18 +51,20 @@ async def upload_image(
             detail="Only JPEG, PNG and WebP images are allowed"
         )
 
-    # Generate a unique filename so images never overwrite each other
-    extension = file.filename.split(".")[-1]
-    unique_filename = f"{uuid.uuid4()}.{extension}"
-    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+    # Read file contents
+    contents = await file.read()
 
-    # Save the file to disk
-    with open(file_path, "wb") as buffer:
-        content = await file.read()
-        buffer.write(content)
+    # Upload to Cloudinary
+    upload_result = cloudinary.uploader.upload(
+        contents,
+        folder=f"real_estate/property_{property_id}",
+        resource_type="image"
+    )
+
+    # Get the secure URL from Cloudinary
+    image_url = upload_result["secure_url"]
 
     # Save the image URL to the database
-    image_url = f"/uploads/{unique_filename}"
     new_image = PropertyImage(
         property_id=property_id,
         image_url=image_url

@@ -1,0 +1,24 @@
+# Virtual environment
+venv/
+
+# Environment variables (NEVER push this to GitHub!)
+.env
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Uploaded images
+uploads/
+
+# Database
+*.db
+*.sqlite
+
+# VS Code settings
+.vscode/
+
+# Mac system files
+.DS_Store

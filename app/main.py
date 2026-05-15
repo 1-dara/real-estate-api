@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, properties, uploads, reviews
 import os
 
@@ -9,18 +10,62 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Serve uploaded images as static files
-os.makedirs("uploads", exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# =========================
+# CORS CONFIGURATION
+# =========================
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change to frontend URL later for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Register all routers
-app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
-app.include_router(properties.router,
-                   prefix="/api/properties", tags=["Properties"])
-app.include_router(uploads.router, prefix="/api/uploads", tags=["Uploads"])
-app.include_router(reviews.router, prefix="/api/properties", tags=["Reviews"])
+# =========================
+# STATIC FILES
+# =========================
+os.makedirs("uploads", exist_ok=True)
+
+app.mount(
+    "/uploads",
+    StaticFiles(directory="uploads"),
+    name="uploads"
+)
+
+# =========================
+# ROUTERS
+# =========================
+app.include_router(
+    auth.router,
+    prefix="/api/auth",
+    tags=["Auth"]
+)
+
+app.include_router(
+    properties.router,
+    prefix="/api/properties",
+    tags=["Properties"]
+)
+
+app.include_router(
+    uploads.router,
+    prefix="/api/uploads",
+    tags=["Uploads"]
+)
+
+app.include_router(
+    reviews.router,
+    prefix="/api/properties",
+    tags=["Reviews"]
+)
+
+# =========================
+# ROOT ENDPOINT
+# =========================
 
 
 @app.get("/")
 async def root():
-    return {"message": "Real Estate API is running 🏠"}
+    return {
+        "message": "Real Estate API is running 🏠"
+    }

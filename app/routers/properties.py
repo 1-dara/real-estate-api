@@ -178,3 +178,4 @@ async def delete_property(
         )
     await db.delete(property)
     await db.commit()
+

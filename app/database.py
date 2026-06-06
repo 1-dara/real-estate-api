@@ -3,11 +3,7 @@ from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from app.core.config import settings
 
 # Create the async engine (the connection to PostgreSQL)
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=True,
-    connect_args={"ssl": "require"}
-)
+engine = create_async_engine(settings.DATABASE_URL, echo=True)
 
 # Session factory — each request gets its own session
 AsyncSessionLocal = sessionmaker(

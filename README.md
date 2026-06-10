@@ -1,32 +1,109 @@
-# 🏠 Real Estate Listing API
+#  Real Estate Listing API
 
-A fully functional real estate listing backend built with **FastAPI**, **PostgreSQL**, and **JWT authentication**.
+A fully functional, production-grade real estate listing backend built with **FastAPI** and **PostgreSQL**. Deployed and live.
 
-## 🚀 Features
+ **Live API Docs:** https://real-estate-api-1-6678.onrender.com/docs  
+ **GitHub:** https://github.com/1-dara/real-estate-api
 
-- **User Authentication** — Register and login with JWT tokens
+---
+
+##  Features
+
+- **JWT Authentication** — Secure register and login with access tokens
+- **Role-Based Access Control** — Separate permissions for agents and regular users
 - **Property Listings** — Full CRUD (Create, Read, Update, Delete)
-- **Search & Filters** — Filter properties by city, state, price range, bedrooms, and property type
-- **Image Uploads** — Upload multiple images per property
-- **Role Based Access** — Only agents can create and manage listings
-- **Secure** — Passwords hashed with bcrypt, protected routes with JWT
+- **Search & Filters** — Filter by city, state, price range, bedrooms, and property type
+- **Pagination** — Efficient data loading with page and limit controls
+- **Reviews System** — Users can leave star ratings and comments with business rules (no self-reviews, no duplicates)
+- **Image Uploads** — Permanent cloud image storage via Cloudinary
+- **Auto-generated Docs** — Interactive Swagger UI at `/docs`
 
-## 🛠️ Tech Stack
+---
 
-- **Framework** — FastAPI
-- **Database** — PostgreSQL
-- **ORM** — SQLAlchemy (async)
-- **Migrations** — Alembic
-- **Authentication** — JWT (python-jose)
-- **Password Hashing** — bcrypt (passlib)
-- **Validation** — Pydantic
+##  Tech Stack
 
-## ⚙️ Setup & Installation
+| Technology | Purpose |
+|---|---|
+| FastAPI | Web framework |
+| PostgreSQL | Database |
+| SQLAlchemy (Async) | ORM |
+| Alembic | Database migrations |
+| JWT / OAuth2 | Authentication |
+| bcrypt | Password hashing |
+| Cloudinary | Image storage |
+| Render | Deployment |
+| Pydantic | Data validation |
+
+---
+
+##  Project Structure
+
+```
+real_estate_api/
+├── app/
+│   ├── main.py               # App entry point
+│   ├── database.py           # PostgreSQL connection
+│   ├── models/               # Database models
+│   │   ├── user.py
+│   │   ├── property.py
+│   │   ├── property_image.py
+│   │   └── review.py
+│   ├── schemas/              # Pydantic validation schemas
+│   │   ├── user.py
+│   │   └── property.py
+│   ├── routers/              # API route handlers
+│   │   ├── auth.py
+│   │   ├── properties.py
+│   │   ├── uploads.py
+│   │   └── reviews.py
+│   └── core/
+│       ├── config.py         # Environment settings
+│       └── security.py       # JWT & password hashing
+├── alembic/                  # Database migrations
+├── requirements.txt
+├── Procfile
+└── README.md
+```
+
+---
+
+##  API Endpoints
+
+### Auth
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| POST | `/api/auth/register` | Register a new user | ❌ |
+| POST | `/api/auth/login` | Login and get JWT token | ❌ |
+
+### Properties
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | `/api/properties/` | Get all properties with filters & pagination | ❌ |
+| POST | `/api/properties/` | Create a new listing | ✅ Agents only |
+| GET | `/api/properties/{id}` | Get a single property | ❌ |
+| PUT | `/api/properties/{id}` | Update a property | ✅ Owner only |
+| DELETE | `/api/properties/{id}` | Delete a property | ✅ Owner only |
+
+### Reviews
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | `/api/properties/{id}/reviews` | Get reviews for a property | ❌ |
+| POST | `/api/properties/{id}/reviews` | Leave a review | ✅ |
+
+### Uploads
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| POST | `/api/uploads/{id}/images` | Upload property image | ✅ Owner only |
+| GET | `/api/uploads/{id}/images` | Get all images for a property | ❌ |
+
+---
+
+##  Setup & Installation
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/real_estate_api.git
-cd real_estate_api
+git clone https://github.com/1-dara/real-estate-api.git
+cd real-estate-api
 ```
 
 2. **Create virtual environment**
@@ -40,12 +117,15 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. **Create a `.env` file in the root folder**
+4. **Create a `.env` file**
 ```env
 DATABASE_URL=postgresql+asyncpg://username@localhost:5432/real_estate_db
 SECRET_KEY=your-secret-key
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 5. **Run database migrations**
@@ -59,26 +139,15 @@ uvicorn app.main:app --reload
 ```
 
 7. **Visit the API docs**
+```
 http://127.0.0.1:8000/docs
-## 🔑 API Endpoints
+```
 
-### Auth
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register a new user |
-| POST | `/api/auth/login` | Login and get JWT token |
+---
 
-### Properties
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/properties/` | Get all properties with filters |
-| POST | `/api/properties/` | Create a new listing (agents only) |
-| GET | `/api/properties/{id}` | Get a single property |
-| PUT | `/api/properties/{id}` | Update a property |
-| DELETE | `/api/properties/{id}` | Delete a property |
+##  Author
 
-### Uploads
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/uploads/{id}/images` | Upload image for a property |
-| GET | `/api/uploads/{id}/images` | Get all images for a property |
+**Irene Peter-Okon Idara**  
+Backend Engineer  
+ 1ireneokon@gmail.com  
+ github.com/1-dara

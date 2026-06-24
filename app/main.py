@@ -1,3 +1,4 @@
+from fastapi.responses import RedirectResponse
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,4 +32,4 @@ app.include_router(reviews.router, prefix="/api/properties", tags=["Reviews"])
 
 @app.get("/")
 async def root():
-    return {"message": "Real Estate API is running 🏠"}
+    return RedirectResponse(url="/docs")

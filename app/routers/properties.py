@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import List, Optional
 from app.database import get_db
 from app.models.property import Property
 from app.models.user import User
@@ -20,18 +19,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
     payload = verify_access_token(token)
     if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
     user_id = int(payload.get("sub"))
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
 
 
@@ -42,21 +35,12 @@ async def create_property(
     current_user: User = Depends(get_current_user)
 ):
     if not current_user.is_agent:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only agents can create listings"
-        )
-    new_property = Property(
-        **property_data.model_dump(),
-        owner_id=current_user.id
-    )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only agents can create listings")
+    new_property = Property(**property_data.model_dump(), owner_id=current_user.id)
     db.add(new_property)
     await db.commit()
     await db.refresh(new_property)
-
-    # Invalidate properties cache
-    delete_pattern("properties:*")
-
+    delete_pattern("re-py:properties:*")
     return new_property
 
 
@@ -71,15 +55,12 @@ async def get_properties(
     limit: int = 10,
     db: AsyncSession = Depends(get_db)
 ):
-    # Build cache key from query params
-    cache_key = f"properties:city={city}:type={property_type}:min={min_price}:max={max_price}:beds={bedrooms}:page={page}:limit={limit}"
+    cache_key = f"re-py:properties:city={city}:type={property_type}:min={min_price}:max={max_price}:beds={bedrooms}:page={page}:limit={limit}"
 
-    # Check cache first
     cached = get_cache(cache_key)
     if cached:
         return json.loads(cached)
 
-    # Query database
     query = select(Property).where(Property.is_available == True)
 
     if city:
@@ -132,9 +113,7 @@ async def get_properties(
         "properties": properties_list
     }
 
-    # Store in cache for 5 minutes
     set_cache(cache_key, json.dumps(response, default=str), expire=300)
-
     return response
 
 
@@ -143,21 +122,16 @@ async def get_property(
     property_id: int,
     db: AsyncSession = Depends(get_db)
 ):
-    # Check cache first
-    cache_key = f"property:{property_id}"
+    cache_key = f"re-py:property:{property_id}"
     cached = get_cache(cache_key)
     if cached:
         return json.loads(cached)
 
-    # Query database
     result = await db.execute(select(Property).where(Property.id == property_id))
     property = result.scalar_one_or_none()
 
     if not property:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Property not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
 
     property_data = {
         "id": property.id,
@@ -178,9 +152,7 @@ async def get_property(
         "updated_at": property.updated_at.isoformat(),
     }
 
-    # Store in cache for 5 minutes
     set_cache(cache_key, json.dumps(property_data, default=str), expire=300)
-
     return property_data
 
 
@@ -194,24 +166,15 @@ async def update_property(
     result = await db.execute(select(Property).where(Property.id == property_id))
     property = result.scalar_one_or_none()
     if not property:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Property not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
     if property.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only edit your own listings"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only edit your own listings")
     for field, value in property_data.model_dump(exclude_unset=True).items():
         setattr(property, field, value)
     await db.commit()
     await db.refresh(property)
-
-    # Invalidate cache
-    delete_cache(f"property:{property_id}")
-    delete_pattern("properties:*")
-
+    delete_cache(f"re-py:property:{property_id}")
+    delete_pattern("re-py:properties:*")
     return property
 
 
@@ -224,19 +187,10 @@ async def delete_property(
     result = await db.execute(select(Property).where(Property.id == property_id))
     property = result.scalar_one_or_none()
     if not property:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Property not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
     if property.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only delete your own listings"
-        )
-
-    # Invalidate cache
-    delete_cache(f"property:{property_id}")
-    delete_pattern("properties:*")
-
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own listings")
+    delete_cache(f"re-py:property:{property_id}")
+    delete_pattern("re-py:properties:*")
     await db.delete(property)
     await db.commit()

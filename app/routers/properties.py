@@ -8,6 +8,9 @@ from app.models.user import User
 from app.schemas.property import PropertyCreate, PropertyUpdate, PropertyResponse
 from app.core.security import verify_access_token
 from fastapi.security import OAuth2PasswordBearer
+import json
+import math
+from app.redis_client import get_cache, set_cache, delete_cache, delete_pattern
 
 router = APIRouter()
 
@@ -50,27 +53,37 @@ async def create_property(
     db.add(new_property)
     await db.commit()
     await db.refresh(new_property)
+
+    # Invalidate properties cache
+    delete_pattern("properties:*")
+
     return new_property
 
 
-@router.get("/", response_model=dict)
+@router.get("/")
 async def get_properties(
-    city: Optional[str] = None,
-    state: Optional[str] = None,
-    min_price: Optional[float] = None,
-    max_price: Optional[float] = None,
-    bedrooms: Optional[int] = None,
-    property_type: Optional[str] = None,
+    city: str = None,
+    property_type: str = None,
+    min_price: float = None,
+    max_price: float = None,
+    bedrooms: int = None,
     page: int = 1,
     limit: int = 10,
     db: AsyncSession = Depends(get_db)
 ):
+    # Build cache key from query params
+    cache_key = f"properties:city={city}:type={property_type}:min={min_price}:max={max_price}:beds={bedrooms}:page={page}:limit={limit}"
+
+    # Check cache first
+    cached = get_cache(cache_key)
+    if cached:
+        return json.loads(cached)
+
+    # Query database
     query = select(Property).where(Property.is_available == True)
 
     if city:
         query = query.where(Property.city.ilike(f"%{city}%"))
-    if state:
-        query = query.where(Property.state.ilike(f"%{state}%"))
     if min_price:
         query = query.where(Property.price >= min_price)
     if max_price:
@@ -111,7 +124,7 @@ async def get_properties(
         for p in properties
     ]
 
-    return {
+    response = {
         "total": total,
         "page": page,
         "limit": limit,
@@ -119,17 +132,56 @@ async def get_properties(
         "properties": properties_list
     }
 
+    # Store in cache for 5 minutes
+    set_cache(cache_key, json.dumps(response, default=str), expire=300)
 
-@router.get("/{property_id}", response_model=PropertyResponse)
-async def get_property(property_id: int, db: AsyncSession = Depends(get_db)):
+    return response
+
+
+@router.get("/{property_id}")
+async def get_property(
+    property_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    # Check cache first
+    cache_key = f"property:{property_id}"
+    cached = get_cache(cache_key)
+    if cached:
+        return json.loads(cached)
+
+    # Query database
     result = await db.execute(select(Property).where(Property.id == property_id))
     property = result.scalar_one_or_none()
+
     if not property:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Property not found"
         )
-    return property
+
+    property_data = {
+        "id": property.id,
+        "owner_id": property.owner_id,
+        "title": property.title,
+        "description": property.description,
+        "price": property.price,
+        "location": property.location,
+        "city": property.city,
+        "state": property.state,
+        "property_type": property.property_type,
+        "bedrooms": property.bedrooms,
+        "bathrooms": property.bathrooms,
+        "size_sqm": property.size_sqm,
+        "amenities": property.amenities,
+        "is_available": property.is_available,
+        "created_at": property.created_at.isoformat(),
+        "updated_at": property.updated_at.isoformat(),
+    }
+
+    # Store in cache for 5 minutes
+    set_cache(cache_key, json.dumps(property_data, default=str), expire=300)
+
+    return property_data
 
 
 @router.put("/{property_id}", response_model=PropertyResponse)
@@ -155,6 +207,11 @@ async def update_property(
         setattr(property, field, value)
     await db.commit()
     await db.refresh(property)
+
+    # Invalidate cache
+    delete_cache(f"property:{property_id}")
+    delete_pattern("properties:*")
+
     return property
 
 
@@ -176,6 +233,10 @@ async def delete_property(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only delete your own listings"
         )
+
+    # Invalidate cache
+    delete_cache(f"property:{property_id}")
+    delete_pattern("properties:*")
+
     await db.delete(property)
     await db.commit()
-

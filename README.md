@@ -36,9 +36,8 @@ A fully functional, production-grade real estate listing backend built with **Fa
 | Cloudinary | Image storage |
 | Render | Deployment |
 | Pydantic | Data validation |
-| Redis | Caching layer for listing endpoints |
+| Redis | Caching layer for property/product/course listings |
 | slowapi | Rate limiting middleware |
-
 
 ---
 

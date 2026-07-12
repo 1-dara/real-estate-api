@@ -17,6 +17,9 @@ A fully functional, production-grade real estate listing backend built with **Fa
 - **Reviews System** — Users can leave star ratings and comments with business rules (no self-reviews, no duplicates)
 - **Image Uploads** — Permanent cloud image storage via Cloudinary
 - **Auto-generated Docs** — Interactive Swagger UI at `/docs`
+- **Redis Caching** — GET endpoints cached for 5 minutes with automatic invalidation on create/update/delete
+- **Rate Limiting** — 100 requests per minute per IP address to prevent API abuse
+
 
 ---
 
@@ -33,6 +36,9 @@ A fully functional, production-grade real estate listing backend built with **Fa
 | Cloudinary | Image storage |
 | Render | Deployment |
 | Pydantic | Data validation |
+| Redis | Caching layer for listing endpoints |
+| slowapi | Rate limiting middleware |
+
 
 ---
 

@@ -20,6 +20,8 @@ A fully functional, production-grade real estate listing backend built with **Fa
 - **Redis Caching** — GET endpoints cached for 5 minutes with automatic invalidation on create/update/delete
 - **Rate Limiting** — 100 requests per minute per IP address to prevent API abuse
 - **Docker** — fully containerized with Dockerfile and docker-compose for consistent deployment
+- **CI/CD** — GitHub Actions pipeline runs tests automatically on every push to main
+
 
 
 
@@ -41,6 +43,8 @@ A fully functional, production-grade real estate listing backend built with **Fa
 | Redis | Caching layer for property/product/course listings |
 | slowapi | Rate limiting middleware |
 | Docker | Containerization |
+| GitHub Actions | CI/CD pipeline |
+
 
 
 ---

@@ -1,6 +1,7 @@
 #  Real Estate Listing API
 
-A fully functional, production-grade real estate listing backend built with **FastAPI** and **PostgreSQL**. Deployed and live.
+A fully functional, production-grade real estate listing backend built with **FastAPI** and **PostgreSQL**. Deployed and live. Containerized with Docker for consistent deployment across environments
+
 
  **Live API Docs:** https://real-estate-api-1-6678.onrender.com/docs  
  **GitHub:** https://github.com/1-dara/real-estate-api

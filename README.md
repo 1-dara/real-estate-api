@@ -1,7 +1,6 @@
 #  Real Estate Listing API
 
-A fully functional, production-grade real estate listing backend built with **FastAPI** and **PostgreSQL**. Deployed and live. Containerized with Docker for consistent deployment across environments
-
+A fully functional, production-grade real estate listing backend built with **FastAPI** and **PostgreSQL**. Deployed and live. 
 
  **Live API Docs:** https://real-estate-api-1-6678.onrender.com/docs  
  **GitHub:** https://github.com/1-dara/real-estate-api
@@ -20,6 +19,8 @@ A fully functional, production-grade real estate listing backend built with **Fa
 - **Auto-generated Docs** — Interactive Swagger UI at `/docs`
 - **Redis Caching** — GET endpoints cached for 5 minutes with automatic invalidation on create/update/delete
 - **Rate Limiting** — 100 requests per minute per IP address to prevent API abuse
+- **Docker** — fully containerized with Dockerfile and docker-compose for consistent deployment
+
 
 
 ---
@@ -39,6 +40,8 @@ A fully functional, production-grade real estate listing backend built with **Fa
 | Pydantic | Data validation |
 | Redis | Caching layer for property/product/course listings |
 | slowapi | Rate limiting middleware |
+| Docker | Containerization |
+
 
 ---
 

@@ -21,7 +21,7 @@ A fully functional, production-grade real estate listing backend built with **Fa
 - **Rate Limiting** — 100 requests per minute per IP address to prevent API abuse
 - **Docker** — fully containerized with Dockerfile and docker-compose for consistent deployment
 - **CI/CD** — GitHub Actions pipeline runs tests automatically on every push to main
-
+- **AI Assistant** — Natural language Q&A endpoint powered by OpenAI (GPT-4o-mini)
 
 
 
@@ -43,6 +43,7 @@ A fully functional, production-grade real estate listing backend built with **Fa
 | Redis | Caching layer for property/product/course listings |
 | slowapi | Rate limiting middleware |
 | Docker | Containerization |
+| OpenAI API | AI-powered natural language responses |
 | GitHub Actions | CI/CD pipeline |
 
 
@@ -110,6 +111,25 @@ real_estate_api/
 | GET | `/api/uploads/{id}/images` | Get all images for a property | ❌ |
 
 ---
+### AI Assistant
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| POST | `/api/ai/ask` | Ask a natural language question and get an AI-generated answer | ✅ |
+
+**Example:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/ai/ask \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"question": "What should I look for when buying my first home?"}'
+```
+
+**Response:**
+```json
+{"answer": "Here are key things to consider..."}
+```
+
+---
 
 ##  Setup & Installation
 
@@ -139,6 +159,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
+OPENAI_API_KEY=your-openai-api-key
 ```
 
 5. **Run database migrations**

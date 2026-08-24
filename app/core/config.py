@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
     REDIS_URL: str = "redis://localhost:6379"
-    OPENAI_API_KEY: str
+    GEMINI_API_KEY: str
 
     class Config:
         env_file = ".env"
